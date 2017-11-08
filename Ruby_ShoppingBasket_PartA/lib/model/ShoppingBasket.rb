@@ -4,8 +4,8 @@ class ShoppingBasket < PricedObject
 
   attr_accessor :items
 
-  def initialize(name = 'basket', price_initial = 0.0)
-    super(name, price_initial)
+  def initialize(name = 'basket', price_initial = 0.0, discounts = [])
+    super(name, price_initial, discounts)
     @items = Hash.new
   end
 
@@ -42,8 +42,10 @@ class ShoppingBasket < PricedObject
     items.each  do  |item, amount|
       items_cost = (item.price_for(amount.to_f)).round(2)
       result_string += "\n#{item.name} * #{amount} \t\t#{items_cost.as_price}"
+      result_string += " * OFFER" if item.discounts.count > 0
     end
     result_string += "\n\nTOTAL:\t\t\t#{ price.as_price}"
+    result_string += " * OFFER" if discounts.count > 0
     result_string += "\n--- Have a nice day --"
     result_string
   end

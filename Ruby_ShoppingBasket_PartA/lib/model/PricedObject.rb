@@ -1,8 +1,10 @@
 class PricedObject
-  attr_accessor :name, :price_initial
-  def initialize(name, price_initial =  0.0)
+  attr_accessor :name, :price_initial, :discounts
+
+  def initialize(name, price_initial =  0.0, discounts = [])
     @price_initial = price_initial
     @name = name.to_s
+    @discounts = discounts
   end
 
   def price_base

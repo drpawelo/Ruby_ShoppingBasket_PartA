@@ -20,7 +20,7 @@ class TestShoppingBasket_AddingItems < MiniTest::Test
   def setup
     @apple = PricedObject.new("apple", 0.11)
     @pear = PricedObject.new("pear", 0.22)
-    @irnbru = PricedObject.new("IRN BRU", 0.55)
+    @irnbru = PricedObject.new("irnbru", 0.55)
     @basket = ShoppingBasket.new
   end
 
@@ -79,5 +79,45 @@ class TestShoppingBasket_AddingItems < MiniTest::Test
   def test_calculate_total_complex
     add_many_items
     assert(@basket.price == 2.20) # 0.11 + 0.22 * 2 + 0.55 * 3
+  end
+
+
+  def test_buy_one_get_one
+    add_many_items
+    discount = Discount.new(:buy_some_get_last_discounted_discount, 2, 1.0)
+    @pear.discounts.push(discount)
+    assert(@basket.price == 1.98) # 0.11 +  (0.22 * 2) - 0.22 + 0.55 * 3
+  end
+
+  def test_discount_over_2
+    add_many_items
+    discount = Discount.new(:if_over_price_then_percent_discount, 2.0, 0.10)
+    @basket.discounts.push(discount)
+    assert(@basket.price == 1.98) # 2.20 * 0.9
+  end
+
+  def test_discount_over_1_and_bogof_combo_enough
+    add_many_items
+    discount_bogof = Discount.new(:buy_some_get_last_discounted_discount, 2.0, 1.0)
+    @pear.discounts.push(discount_bogof)
+    discount = Discount.new(:if_over_price_then_percent_discount, 1.0, 0.10)
+    @basket.discounts.push(discount)
+    assert(@basket.price == 1.78) #1.98 is not enough
+  end
+
+  def test_discount_over_2_and_bogof_combo_not_enough
+    add_many_items
+    discount_bogof = Discount.new(:buy_some_get_last_discounted_discount, 2.0, 1.0)
+    @pear.discounts.push(discount_bogof)
+    discount = Discount.new(:if_over_price_then_percent_discount, 2.0, 0.10)
+    @basket.discounts.push(discount)
+    assert(@basket.price == 1.98) #1.98 is not enough
+  end
+
+  def test_total_discount
+    add_many_items
+    discount = Discount.new(:percent_discount, 0.0, 0.02) #33% discount
+    @basket.discounts.push(discount)
+    assert(@basket.price == 2.16) # 0.11 +  (0.22 * 2) + 0.55 * 3 = 2.20 * 0.98
   end
 end
